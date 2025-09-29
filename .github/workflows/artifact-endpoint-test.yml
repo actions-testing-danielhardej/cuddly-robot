@@ -1,0 +1,75 @@
+name: GitHub Actions Artifact Endpoint Test
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test-artifact-endpoints:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    # - name: Test Artifact Upload Endpoints DNS Resolution
+    #   run: |
+    #     Write-Host "=== GitHub Actions Artifact Upload Endpoint DNS Test ===" -ForegroundColor Cyan
+        
+    #     # Core artifact endpoints used by GitHub Actions
+    #     $artifactEndpoints = @(
+    #       "uploads.github.com",
+    #       "api.github.com",
+    #       "pipelines.actions.githubusercontent.com",
+    #       "objects.githubusercontent.com"
+    #     )
+        
+    #     & .\scripts\Test-DNSResolution.ps1 -Endpoints $artifactEndpoints -Detailed
+    #   shell: powershell
+      
+    - name: Explicit DNS Resolution Tests
+      run: |
+        Write-Host "=== Explicit DNS Resolution Tests ===" -ForegroundColor Magenta
+        Write-Host "Testing specific GitHub Actions endpoints with individual Resolve-DnsName commands:" -ForegroundColor Yellow
+        
+        $endpoints = @(
+          "results-receiver.actions.githubusercontent.com",
+          "actions.githubusercontent.com", 
+          "api.github.com",
+          "github.com",
+          "blob.core.windows.net"
+        )
+        
+        foreach ($endpoint in $endpoints) {
+          Write-Host "`nTesting: $endpoint" -ForegroundColor Cyan
+          try {
+            Resolve-DnsName $endpoint | Format-Table Name, Type, IPAddress, TTL -AutoSize
+          } catch {
+            Write-Host "Failed to resolve $endpoint`: $($_.Exception.Message)" -ForegroundColor Red
+          }
+        }
+      shell: powershell
+      
+    - name: Test Actual Artifact Upload
+      run: |
+        # Create a test file to upload as artifact
+        $testContent = "Artifact Upload Test`nGenerated: $(Get-Date)`nRunner: $env:RUNNER_NAME`nOS: $env:RUNNER_OS"
+        $testContent | Out-File -FilePath "test-artifact.txt" -Encoding UTF8
+        Write-Host "Created test artifact file"
+      shell: powershell
+      
+    - name: Upload Test Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: dns-test-artifact-${{ github.run_number }}
+        path: test-artifact.txt
+        retention-days: 1
+        
+    - name: Verify Artifact Upload Success
+      shell: pwsh
+      run: |
+        Write-Host "✓ Artifact upload completed successfully" -ForegroundColor Green
+        Write-Host "This confirms that DNS resolution and connectivity to GitHub Actions artifact endpoints is working properly." -ForegroundColor Yellow
