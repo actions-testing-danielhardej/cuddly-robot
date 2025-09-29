@@ -1,0 +1,86 @@
+name: DNS Resolution Test for GitHub Actions Endpoints
+
+on:
+  # Run on push to main branch
+  push:
+    branches: [ main ]
+  
+  # Run on pull requests
+  pull_request:
+    branches: [ main ]
+  
+  # Allow manual triggering
+  workflow_dispatch:
+    inputs:
+      detailed_output:
+        description: 'Enable detailed DNS record output'
+        required: false
+        default: 'false'
+        type: boolean
+  
+  # Run daily at 00:00 UTC to monitor endpoint availability
+  schedule:
+    - cron: '0 0 * * *'
+
+jobs:
+  test-dns-resolution:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Display Windows version and PowerShell info
+      run: |
+        Write-Host "Windows Version:" -ForegroundColor Cyan
+        Get-ComputerInfo | Select-Object WindowsProductName, WindowsVersion, WindowsBuildLabEx
+        Write-Host "`nPowerShell Version:" -ForegroundColor Cyan
+        $PSVersionTable
+        Write-Host "`nNetwork Configuration:" -ForegroundColor Cyan
+        Get-NetAdapter | Where-Object Status -eq "Up" | Select-Object Name, InterfaceDescription, LinkSpeed
+      shell: powershell
+      
+    - name: Test DNS Resolution for GitHub Actions Endpoints
+      run: |
+        $detailedFlag = "${{ github.event.inputs.detailed_output }}" -eq "true"
+        if ($detailedFlag) {
+          & .\scripts\Test-DNSResolution.ps1 -Detailed
+        } else {
+          & .\scripts\Test-DNSResolution.ps1
+        }
+      shell: powershell
+      
+    - name: Test DNS Resolution with Custom Endpoints
+      run: |
+        Write-Host "=== Testing Additional GitHub Endpoints ===" -ForegroundColor Magenta
+        $additionalEndpoints = @(
+          "codeload.github.com",
+          "raw.githubusercontent.com", 
+          "avatars.githubusercontent.com",
+          "ghcr.io"
+        )
+        & .\scripts\Test-DNSResolution.ps1 -Endpoints $additionalEndpoints
+      shell: powershell
+      
+    - name: Test DNS Servers and Configuration
+      run: |
+        Write-Host "=== DNS Configuration Analysis ===" -ForegroundColor Magenta
+        Write-Host "`nDNS Client Configuration:" -ForegroundColor Yellow
+        Get-DnsClientServerAddress | Format-Table -AutoSize
+        
+        Write-Host "`nDNS Cache:" -ForegroundColor Yellow
+        Get-DnsClientCache | Where-Object Name -like "*github*" | Format-Table Name, Type, Data -AutoSize
+        
+        Write-Host "`nNetwork DNS Configuration:" -ForegroundColor Yellow
+        ipconfig /all
+      shell: powershell
+      
+    - name: Generate DNS Test Summary
+      if: always()
+      run: |
+        Write-Host "=== DNS Test Summary ===" -ForegroundColor Cyan
+        Write-Host "Test completed at: $(Get-Date)" -ForegroundColor Yellow
+        Write-Host "Windows Version: $((Get-ComputerInfo).WindowsProductName)" -ForegroundColor Yellow
+        Write-Host "PowerShell Version: $($PSVersionTable.PSVersion)" -ForegroundColor Yellow
+        Write-Host "Check the above logs for detailed DNS resolution test results." -ForegroundColor Green
+      shell: powershell
