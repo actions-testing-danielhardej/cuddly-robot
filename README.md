@@ -53,7 +53,7 @@ PowerShell script that performs DNS resolution testing with the following capabi
 - `api.github.com` - GitHub API endpoint
 - `github.com` - Main GitHub domain
 - `objects.githubusercontent.com` - Object storage endpoint
-- `*.blob.core.windows.net` - Azure blob storage (used by GitHub Actions)
+- `pipelines.actions.githubusercontent.com` - GitHub Actions pipeline services
 
 ## 🚀 How to Use
 

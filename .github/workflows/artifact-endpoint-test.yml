@@ -23,7 +23,7 @@ jobs:
         $artifactEndpoints = @(
           "uploads.github.com",
           "api.github.com",
-          "*.blob.core.windows.net",
+          "pipelines.actions.githubusercontent.com",
           "objects.githubusercontent.com"
         )
         

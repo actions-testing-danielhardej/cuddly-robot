@@ -9,7 +9,7 @@ param(
         "api.github.com", 
         "github.com",
         "objects.githubusercontent.com",
-        "*.blob.core.windows.net"
+        "pipelines.actions.githubusercontent.com"
     ),
     [switch]$Detailed
 )
@@ -46,19 +46,19 @@ foreach ($endpoint in $Endpoints) {
                 }
             }
             
-            # Try to get IP addresses specifically
+            # Extract IP addresses
             $aRecords = $dnsResult | Where-Object { $_.Type -eq "A" -or $_.Type -eq "AAAA" }
-            if ($aRecords) {
-                $ipAddresses = $aRecords | ForEach-Object { $_.IPAddress } | Where-Object { $_ }
-                if ($ipAddresses) {
-                    Write-Host "  IP Addresses: $($ipAddresses -join ', ')" -ForegroundColor Cyan
-                }
+            $ipAddresses = $aRecords | ForEach-Object { $_.IPAddress } | Where-Object { $_ }
+            $ipAddressString = $ipAddresses -join ', '
+            
+            if ($ipAddresses) {
+                Write-Host "  IP Addresses: $ipAddressString" -ForegroundColor Cyan
             }
             
             $results += [PSCustomObject]@{
                 Endpoint = $endpoint
                 Status = "SUCCESS"
-                IPAddresses = ($aRecords | ForEach-Object { $_.IPAddress } | Where-Object { $_ }) -join ', '
+                IPAddresses = $ipAddressString
                 RecordCount = $dnsResult.Count
             }
         } else {
