@@ -62,6 +62,29 @@ jobs:
         & .\scripts\Test-DNSResolution.ps1 -Endpoints $additionalEndpoints
       shell: powershell
       
+    - name: Explicit DNS Resolution Tests
+      run: |
+        Write-Host "=== Explicit DNS Resolution Tests ===" -ForegroundColor Magenta
+        Write-Host "Testing specific GitHub Actions endpoints with individual Resolve-DnsName commands:" -ForegroundColor Yellow
+        
+        $endpoints = @(
+          "results-receiver.actions.githubusercontent.com",
+          "actions.githubusercontent.com", 
+          "api.github.com",
+          "github.com",
+          "blob.core.windows.net"
+        )
+        
+        foreach ($endpoint in $endpoints) {
+          Write-Host "`nTesting: $endpoint" -ForegroundColor Cyan
+          try {
+            Resolve-DnsName $endpoint | Format-Table Name, Type, IPAddress, TTL -AutoSize
+          } catch {
+            Write-Host "Failed to resolve $endpoint`: $($_.Exception.Message)" -ForegroundColor Red
+          }
+        }
+      shell: powershell
+      
     - name: Test DNS Servers and Configuration
       run: |
         Write-Host "=== DNS Configuration Analysis ===" -ForegroundColor Magenta
