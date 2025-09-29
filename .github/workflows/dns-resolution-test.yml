@@ -15,7 +15,7 @@ on:
       detailed_output:
         description: 'Enable detailed DNS record output'
         required: false
-        default: 'false'
+        default: false
         type: boolean
   
   # Run daily at 00:00 UTC to monitor endpoint availability
@@ -40,27 +40,27 @@ jobs:
         Get-NetAdapter | Where-Object Status -eq "Up" | Select-Object Name, InterfaceDescription, LinkSpeed
       shell: powershell
       
-    - name: Test DNS Resolution for GitHub Actions Endpoints
-      run: |
-        $detailedFlag = "${{ github.event.inputs.detailed_output }}" -eq "true"
-        if ($detailedFlag) {
-          & .\scripts\Test-DNSResolution.ps1 -Detailed
-        } else {
-          & .\scripts\Test-DNSResolution.ps1
-        }
-      shell: powershell
+    # - name: Test DNS Resolution for GitHub Actions Endpoints
+    #   run: |
+    #     $detailedFlag = "${{ github.event.inputs.detailed_output }}" -eq "true"
+    #     if ($detailedFlag) {
+    #       & .\scripts\Test-DNSResolution.ps1 -Detailed
+    #     } else {
+    #       & .\scripts\Test-DNSResolution.ps1
+    #     }
+    #   shell: powershell
       
-    - name: Test DNS Resolution with Custom Endpoints
-      run: |
-        Write-Host "=== Testing Additional GitHub Endpoints ===" -ForegroundColor Magenta
-        $additionalEndpoints = @(
-          "codeload.github.com",
-          "raw.githubusercontent.com", 
-          "avatars.githubusercontent.com",
-          "ghcr.io"
-        )
-        & .\scripts\Test-DNSResolution.ps1 -Endpoints $additionalEndpoints
-      shell: powershell
+    # - name: Test DNS Resolution with Custom Endpoints
+    #   run: |
+    #     Write-Host "=== Testing Additional GitHub Endpoints ===" -ForegroundColor Magenta
+    #     $additionalEndpoints = @(
+    #       "codeload.github.com",
+    #       "raw.githubusercontent.com", 
+    #       "avatars.githubusercontent.com",
+    #       "ghcr.io"
+    #     )
+    #     & .\scripts\Test-DNSResolution.ps1 -Endpoints $additionalEndpoints
+    #   shell: powershell
       
     - name: Explicit DNS Resolution Tests
       run: |

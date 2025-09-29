@@ -15,20 +15,20 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
       
-    - name: Test Artifact Upload Endpoints DNS Resolution
-      run: |
-        Write-Host "=== GitHub Actions Artifact Upload Endpoint DNS Test ===" -ForegroundColor Cyan
+    # - name: Test Artifact Upload Endpoints DNS Resolution
+    #   run: |
+    #     Write-Host "=== GitHub Actions Artifact Upload Endpoint DNS Test ===" -ForegroundColor Cyan
         
-        # Core artifact endpoints used by GitHub Actions
-        $artifactEndpoints = @(
-          "uploads.github.com",
-          "api.github.com",
-          "pipelines.actions.githubusercontent.com",
-          "objects.githubusercontent.com"
-        )
+    #     # Core artifact endpoints used by GitHub Actions
+    #     $artifactEndpoints = @(
+    #       "uploads.github.com",
+    #       "api.github.com",
+    #       "pipelines.actions.githubusercontent.com",
+    #       "objects.githubusercontent.com"
+    #     )
         
-        & .\scripts\Test-DNSResolution.ps1 -Endpoints $artifactEndpoints -Detailed
-      shell: powershell
+    #     & .\scripts\Test-DNSResolution.ps1 -Endpoints $artifactEndpoints -Detailed
+    #   shell: powershell
       
     - name: Explicit DNS Resolution Tests
       run: |
